@@ -3,16 +3,20 @@ package com.alera.payloadextraction.presentation
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.alera.payloadextraction.presentation.payload.SpO2Payload
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.HealthTrackingService
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
+import java.time.OffsetDateTime
+import kotlinx.serialization.json.Json
 
 class SpO2SensorManager(
     private val healthTrackingService: HealthTrackingService,
     private val onSpO2Changed: (Double?) -> Unit,
     private val onStatusChanged: (Int?) -> Unit,
+    private val onMeasuredAtChanged: (String) -> Unit,
     private val onMeasurementFinished: () -> Unit
 ) {
     private var spo2Tracker: HealthTracker? = null
@@ -20,7 +24,6 @@ class SpO2SensorManager(
     private var isMeasuring = false
     private var schedulerRunning = false
 
-    // Default interval: five minutes.
     private var intervalMinutes: Long = 1
 
     private val handler =
@@ -61,14 +64,41 @@ class SpO2SensorManager(
 
                 onStatusChanged(status)
 
-                if (status == 2 && spo2 > 0) {
-                    onSpO2Changed(spo2.toDouble())
+                    val measuredAt =
+                        OffsetDateTime.now().toString()
+
+                    val spo2Payload =
+                        SpO2Payload(
+                            measuredAt = measuredAt,
+                            spo2Percent = spo2.toDouble(),
+                            status = status
+                        )
+
+                    val spo2Json =
+                        Json.encodeToString(spo2Payload)
+
+                    Log.d(
+                        "AleraSpO2Payload",
+                        spo2Json
+                    )
+
+                    onSpO2Changed(
+                        spo2.toDouble()
+                    )
+
+                    onMeasuredAtChanged(
+                        measuredAt
+                    )
+
                     stopMeasurement()
-                } /*else if (
-                    status == -4 || status == -5 || status == -6
+                 if (
+                     status == 2 ||
+                     status == -4 ||
+                     status == -5 ||
+                     status == -6
                 ) {
                     stopMeasurement()
-                } */
+                }
             }
 
             override fun onFlushCompleted() {
@@ -111,7 +141,6 @@ class SpO2SensorManager(
 
         schedulerRunning = true
 
-        // First measurement happens immediately.
         startMeasurement()
     }
 
@@ -135,7 +164,9 @@ class SpO2SensorManager(
         onSpO2Changed(null)
         onStatusChanged(0)
 
-        tracker.setEventListener(spo2Listener)
+        tracker.setEventListener(
+            spo2Listener
+        )
 
         Log.d(
             "AleraSensor",
