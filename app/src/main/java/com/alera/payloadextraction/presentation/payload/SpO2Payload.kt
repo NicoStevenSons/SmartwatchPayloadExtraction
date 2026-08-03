@@ -12,7 +12,7 @@ data class SpO2Payload(
     val measuredAt: String,
 
     @SerialName("spo2_percent")
-    val spo2Percent: Double,
+    val spo2Percent: Double?,
 
     val status: Int
 ) {

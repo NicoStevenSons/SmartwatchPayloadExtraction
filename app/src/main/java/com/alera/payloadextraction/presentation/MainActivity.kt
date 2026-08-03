@@ -44,13 +44,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import java.time.OffsetDateTime
 import com.alera.payloadextraction.presentation.payload.HeartRatePayload
-import com.alera.payloadextraction.presentation.payload.DeviceStatusPayload
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
+import com.alera.payloadextraction.presentation.sensor.SpO2SensorManager
+import androidx.lifecycle.lifecycleScope
+import com.alera.payloadextraction.presentation.transfer.WearPayloadSender
+import kotlinx.coroutines.launch
+import com.alera.payloadextraction.presentation.status.DeviceStatusReader
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var wearPayloadSender: WearPayloadSender
     private lateinit var healthTrackingService: HealthTrackingService
     private var heartRateTracker: HealthTracker? = null
     private val heartRateState = mutableStateOf<Double?>(null)
@@ -58,6 +64,7 @@ class MainActivity : ComponentActivity() {
     private val spo2StatusState = mutableStateOf<Int?>(null)
     private lateinit var spo2SensorManager: SpO2SensorManager
     private val spo2MeasuredAtState = mutableStateOf<String?>(null)
+    private lateinit var deviceStatusReader:  DeviceStatusReader
     private val bodySensorPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -137,15 +144,23 @@ class MainActivity : ComponentActivity() {
                                 heartRateStatus
                         )
 
-                    val heartRateJson =
-                        Json.encodeToString(
-                            heartRatePayload
-                        )
+                val json = Json {
+                    encodeDefaults = true
+                }
+
+                val heartRateJson = json.encodeToString(heartRatePayload)
 
                     Log.d(
                         "AleraHeartRatePayload",
                         heartRateJson
                     )
+
+                lifecycleScope.launch {
+                    wearPayloadSender.sendPayload(
+                        path = "/alera/heart-rate",
+                        json = heartRateJson
+                    )
+                }
 
                     runOnUiThread {
                         heartRateState.value =
@@ -198,16 +213,24 @@ class MainActivity : ComponentActivity() {
                     "Connection failed: ${exception.errorCode}",
                     exception
                 )
+
+                if (exception.hasResolution()) {
+                    exception.resolve(this@MainActivity)
+                }
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        deviceStatusReader =
+            DeviceStatusReader(this)
+
+        wearPayloadSender =
+            WearPayloadSender(applicationContext)
+
         checkBodySensorPermission()
-        deviceStatusHandler.post(
-            deviceStatusRunnable
-        )
+        deviceStatusHandler.post(deviceStatusRunnable)
 
         setContent {
             WearApp(
@@ -216,6 +239,38 @@ class MainActivity : ComponentActivity() {
                 spo2Status = spo2StatusState.value
 
             )
+        }
+    }
+
+    private fun sendDeviceStatus() {
+        lifecycleScope.launch {
+            try {
+                val status =
+                    deviceStatusReader.readStatus()
+
+                val json = Json {
+                    encodeDefaults = true
+                }
+
+                val statusJson =
+                    json.encodeToString(status)
+
+                wearPayloadSender.sendPayload(
+                    "/alera/device-status",
+                    statusJson
+                )
+
+                Log.d(
+                    "AleraDeviceStatus",
+                    statusJson
+                )
+            } catch (exception: Exception) {
+                Log.e(
+                    "AleraDeviceStatus",
+                    "Failed to send device status",
+                    exception
+                )
+            }
         }
     }
 
@@ -345,6 +400,19 @@ class MainActivity : ComponentActivity() {
                     runOnUiThread {
                         startHeartRateTracking()
                     }
+                },
+                onPayloadReady = { spo2Json ->
+                    lifecycleScope.launch {
+                        val sent = wearPayloadSender.sendPayload(
+                            "/alera/spo2",
+                            spo2Json
+                        )
+
+                        Log.d(
+                            "AleraTransfer",
+                            "SpO2 payload sent: $sent"
+                        )
+                    }
                 }
             )
 
@@ -377,7 +445,7 @@ class MainActivity : ComponentActivity() {
     private val deviceStatusRunnable =
         object : Runnable {
             override fun run() {
-                logDeviceStatusPayload()
+                sendDeviceStatus()
 
                 deviceStatusHandler.postDelayed(
                     this,
@@ -497,24 +565,6 @@ class MainActivity : ComponentActivity() {
 
         return status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL
-    }
-
-    private fun logDeviceStatusPayload() {
-        val deviceStatusPayload =
-            DeviceStatusPayload(
-                recordedAt = OffsetDateTime.now().toString(),
-                batteryPercent = readBatteryPercentage(this),
-                isCharging = readChargingStatus(this),
-                isConnected = isNetworkConnected(this)
-            )
-
-        val deviceStatusJson =
-            Json.encodeToString(deviceStatusPayload)
-
-        Log.d(
-            "AleraDeviceStatusPayload",
-            deviceStatusJson
-        )
     }
 
     fun isNetworkConnected(context: Context): Boolean {
