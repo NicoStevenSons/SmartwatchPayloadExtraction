@@ -1,27 +1,31 @@
-package com.alera.payloadextraction.presentation
+package com.alera.payloadextraction.presentation.sensor
 
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.alera.payloadextraction.presentation.payload.SpO2Payload
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.HealthTrackingService
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
+import kotlinx.serialization.json.Json
+import java.time.OffsetDateTime
 
 class SpO2SensorManager(
     private val healthTrackingService: HealthTrackingService,
     private val onSpO2Changed: (Double?) -> Unit,
     private val onStatusChanged: (Int?) -> Unit,
-    private val onMeasurementFinished: () -> Unit
+    private val onMeasuredAtChanged: (String) -> Unit,
+    private val onMeasurementFinished: () -> Unit,
+    private val onPayloadReady: (String) -> Unit
 ) {
     private var spo2Tracker: HealthTracker? = null
 
     private var isMeasuring = false
     private var schedulerRunning = false
 
-    // Default interval: five minutes.
-    private var intervalMinutes: Long = 1
+    private var intervalMinutes: Long = 5
 
     private val handler =
         Handler(Looper.getMainLooper())
@@ -38,37 +42,70 @@ class SpO2SensorManager(
     private val spo2Listener =
         object : HealthTracker.TrackerEventListener {
 
-            override fun onDataReceived(
-                dataPoints: List<DataPoint>
-            ) {
-                val latestDataPoint =
-                    dataPoints.lastOrNull() ?: return
+            override fun onDataReceived(dataPoints: List<DataPoint>) {
+                val latestDataPoint = dataPoints.lastOrNull() ?: return
 
-                val spo2 =
-                    latestDataPoint.getValue(
-                        ValueKey.SpO2Set.SPO2
-                    )
 
-                val status =
-                    latestDataPoint.getValue(
-                        ValueKey.SpO2Set.STATUS
-                    )
+                val spo2 = latestDataPoint.getValue(
+                    ValueKey.SpO2Set.SPO2
+                )
+
+                val status = latestDataPoint.getValue(
+                    ValueKey.SpO2Set.STATUS
+                )
+
+                val measuredAt = OffsetDateTime.now().toString()
 
                 Log.d(
                     "AleraSensor",
                     "SpO2: $spo2%, status: $status"
                 )
 
-                onStatusChanged(status)
+                val validSpO2 =
+                    if (status == 2 && spo2 > 0) {
+                        spo2.toDouble()
+                    } else {
+                        null
+                    }
 
-                if (status == 2 && spo2 > 0) {
-                    onSpO2Changed(spo2.toDouble())
-                    stopMeasurement()
-                } /*else if (
-                    status == -4 || status == -5 || status == -6
-                ) {
-                    stopMeasurement()
-                } */
+                val spo2Payload = SpO2Payload(
+                    measuredAt = measuredAt,
+                    spo2Percent = validSpO2,
+                    status = status
+                )
+
+                val json = Json {
+                    encodeDefaults = true
+                }
+
+                val spo2Json =
+                    json.encodeToString(
+                        spo2Payload
+                    )
+
+                Log.d(
+                    "AleraSpO2Payload",
+                    spo2Json
+                )
+                onPayloadReady(spo2Json)
+
+                onStatusChanged(status)
+                when (status) {
+                    2 -> {
+                        if (spo2 > 0) {
+                            onSpO2Changed(spo2.toDouble())
+                            onMeasuredAtChanged(measuredAt)
+                        }
+                        stopMeasurement()
+                    }
+                    0 -> {
+                        Log.d("AleraSensor", "SpO2 measurement is still in progress")
+                    }
+                    -4, -5, -6 -> {
+                        Log.d("AleraSensor", "SpO2 measurement failed with status: $status")
+                        stopMeasurement()
+                    }
+                }
             }
 
             override fun onFlushCompleted() {
@@ -111,7 +148,6 @@ class SpO2SensorManager(
 
         schedulerRunning = true
 
-        // First measurement happens immediately.
         startMeasurement()
     }
 
@@ -135,7 +171,9 @@ class SpO2SensorManager(
         onSpO2Changed(null)
         onStatusChanged(0)
 
-        tracker.setEventListener(spo2Listener)
+        tracker.setEventListener(
+            spo2Listener
+        )
 
         Log.d(
             "AleraSensor",

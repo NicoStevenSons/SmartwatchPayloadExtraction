@@ -5,7 +5,6 @@
 
 package com.alera.payloadextraction.presentation
 
-import java.time.OffsetDateTime
 import android.content.Context
 import android.os.BatteryManager
 import android.os.Bundle
@@ -43,14 +42,29 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import java.time.OffsetDateTime
+import com.alera.payloadextraction.presentation.payload.HeartRatePayload
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Handler
+import android.os.Looper
+import com.alera.payloadextraction.presentation.sensor.SpO2SensorManager
+import androidx.lifecycle.lifecycleScope
+import com.alera.payloadextraction.presentation.transfer.WearPayloadSender
+import kotlinx.coroutines.launch
+import com.alera.payloadextraction.presentation.status.DeviceStatusReader
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var wearPayloadSender: WearPayloadSender
     private lateinit var healthTrackingService: HealthTrackingService
     private var heartRateTracker: HealthTracker? = null
     private val heartRateState = mutableStateOf<Double?>(null)
     private val spo2State = mutableStateOf<Double?>(null)
     private val spo2StatusState = mutableStateOf<Int?>(null)
     private lateinit var spo2SensorManager: SpO2SensorManager
+    private val spo2MeasuredAtState = mutableStateOf<String?>(null)
+    private lateinit var deviceStatusReader:  DeviceStatusReader
     private val bodySensorPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -95,7 +109,6 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
-
     private val heartRateListener =
         object : HealthTracker.TrackerEventListener {
 
@@ -115,14 +128,45 @@ class MainActivity : ComponentActivity() {
                         ValueKey.HeartRateSet.HEART_RATE_STATUS
                     )
 
+
                 Log.d(
                     "AleraSensor",
                     "Heart rate: $heartRate BPM, status: $heartRateStatus"
                 )
 
-                runOnUiThread {
-                    heartRateState.value = heartRate.toDouble()
+                    val heartRatePayload =
+                        HeartRatePayload(
+                            measuredAt =
+                                OffsetDateTime.now().toString(),
+                            heartRateBpm =
+                                heartRate.toDouble(),
+                            status =
+                                heartRateStatus
+                        )
+
+                val json = Json {
+                    encodeDefaults = true
                 }
+
+                val heartRateJson = json.encodeToString(heartRatePayload)
+
+                    Log.d(
+                        "AleraHeartRatePayload",
+                        heartRateJson
+                    )
+
+                lifecycleScope.launch {
+                    wearPayloadSender.sendPayload(
+                        path = "/alera/heart-rate",
+                        json = heartRateJson
+                    )
+                }
+
+                    runOnUiThread {
+                        heartRateState.value =
+                            heartRate.toDouble()
+                    }
+
             }
 
             override fun onFlushCompleted() {
@@ -141,54 +185,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-
-    private fun prepareSpO2Tracker() {
-        spo2SensorManager =
-            SpO2SensorManager(
-                healthTrackingService = healthTrackingService,
-
-                onSpO2Changed = { value ->
-                    runOnUiThread {
-                        spo2State.value = value
-                    }
-                },
-
-                onStatusChanged = { status ->
-                    runOnUiThread {
-                        spo2StatusState.value = status
-                    }
-                },
-
-                onMeasurementFinished = {
-                    startHeartRateTracking()
-                }
-            )
-
-        stopHeartRateTracking()
-
-        spo2SensorManager.prepare()
-    }
-
-    private fun startHeartRateTracking() {
-        val tracker = heartRateTracker
-
-        if (tracker == null) {
-            Log.e(
-                "AleraSensor",
-                "Cannot start heart rate: tracker is null"
-            )
-            return
-        }
-
-        tracker.setEventListener(
-            heartRateListener
-        )
-
-        Log.d(
-            "AleraSensor",
-            "Heart-rate tracking started"
-        )
-    }
 
     private val connectionListener =
         object : ConnectionListener {
@@ -217,20 +213,64 @@ class MainActivity : ComponentActivity() {
                     "Connection failed: ${exception.errorCode}",
                     exception
                 )
+
+                if (exception.hasResolution()) {
+                    exception.resolve(this@MainActivity)
+                }
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        deviceStatusReader =
+            DeviceStatusReader(this)
+
+        wearPayloadSender =
+            WearPayloadSender(applicationContext)
+
         checkBodySensorPermission()
+        deviceStatusHandler.post(deviceStatusRunnable)
 
         setContent {
             WearApp(
                 heartRateBpm = heartRateState.value,
                 spo2Percent = spo2State.value,
                 spo2Status = spo2StatusState.value
+
             )
+        }
+    }
+
+    private fun sendDeviceStatus() {
+        lifecycleScope.launch {
+            try {
+                val status =
+                    deviceStatusReader.readStatus()
+
+                val json = Json {
+                    encodeDefaults = true
+                }
+
+                val statusJson =
+                    json.encodeToString(status)
+
+                wearPayloadSender.sendPayload(
+                    "/alera/device-status",
+                    statusJson
+                )
+
+                Log.d(
+                    "AleraDeviceStatus",
+                    statusJson
+                )
+            } catch (exception: Exception) {
+                Log.e(
+                    "AleraDeviceStatus",
+                    "Failed to send device status",
+                    exception
+                )
+            }
         }
     }
 
@@ -265,15 +305,6 @@ class MainActivity : ComponentActivity() {
                 HealthTrackerType.HEART_RATE_CONTINUOUS
             )
 
-        Log.d(
-            "AleraSensor",
-            "Continuous heart rate supported: $heartRateSupported"
-        )
-
-        if (heartRateSupported) {
-            prepareHeartRateTracker()
-        }
-
         val spo2Supported =
             availableTrackers.contains(
                 HealthTrackerType.SPO2_ON_DEMAND
@@ -281,8 +312,17 @@ class MainActivity : ComponentActivity() {
 
         Log.d(
             "AleraSensor",
+            "Continuous heart rate supported: $heartRateSupported"
+        )
+
+        Log.d(
+            "AleraSensor",
             "SpO2 on-demand supported: $spo2Supported"
         )
+
+        if (heartRateSupported) {
+            prepareHeartRateTracker()
+        }
 
         if (spo2Supported) {
             prepareSpO2Tracker()
@@ -303,6 +343,27 @@ class MainActivity : ComponentActivity() {
         startHeartRateTracking()
     }
 
+    private fun startHeartRateTracking() {
+        val tracker = heartRateTracker
+
+        if (tracker == null) {
+            Log.e(
+                "AleraSensor",
+                "Cannot start heart rate: tracker is null"
+            )
+            return
+        }
+
+        tracker.setEventListener(
+            heartRateListener
+        )
+
+        Log.d(
+            "AleraSensor",
+            "Heart-rate tracking started"
+        )
+    }
+
     private fun stopHeartRateTracking() {
         heartRateTracker?.unsetEventListener()
 
@@ -312,143 +373,224 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    override fun onDestroy() {
+    private fun prepareSpO2Tracker() {
+        spo2SensorManager =
+            SpO2SensorManager(
+                healthTrackingService = healthTrackingService,
+
+                onSpO2Changed = { value ->
+                    runOnUiThread {
+                        spo2State.value = value
+                    }
+                },
+
+                onStatusChanged = { status ->
+                    runOnUiThread {
+                        spo2StatusState.value = status
+                    }
+                },
+
+                onMeasuredAtChanged = { measuredAt ->
+                    runOnUiThread {
+                        spo2MeasuredAtState.value = measuredAt
+                    }
+                },
+
+                onMeasurementFinished = {
+                    runOnUiThread {
+                        startHeartRateTracking()
+                    }
+                },
+                onPayloadReady = { spo2Json ->
+                    lifecycleScope.launch {
+                        val sent = wearPayloadSender.sendPayload(
+                            "/alera/spo2",
+                            spo2Json
+                        )
+
+                        Log.d(
+                            "AleraTransfer",
+                            "SpO2 payload sent: $sent"
+                        )
+                    }
+                }
+            )
+
         stopHeartRateTracking()
 
+        spo2SensorManager.prepare()
+    }
+
+    override fun onDestroy() {
+        stopHeartRateTracking()
 
         if (::spo2SensorManager.isInitialized) {
             spo2SensorManager.release()
         }
 
-
         if (::healthTrackingService.isInitialized) {
             healthTrackingService.disconnectService()
         }
 
+        deviceStatusHandler.removeCallbacks(
+            deviceStatusRunnable
+        )
+
         super.onDestroy()
     }
-}
 
+    private val deviceStatusHandler =
+        Handler(Looper.getMainLooper())
 
-@Composable
-fun WearApp(heartRateBpm: Double?, spo2Percent: Double?, spo2Status: Int?) {
-    PayloadExtractionTheme {
-        AppScaffold {
-            PayloadScreen(
-                heartRateBpm = heartRateBpm,
-                spo2Percent = spo2Percent,
-                spo2Status = spo2Status
-            )
+    private val deviceStatusRunnable =
+        object : Runnable {
+            override fun run() {
+                sendDeviceStatus()
+
+                deviceStatusHandler.postDelayed(
+                    this,
+                    60_000L
+                )
+            }
+        }
+
+    @Composable
+    fun WearApp(
+        heartRateBpm: Double?,
+        spo2Percent: Double?,
+        spo2Status: Int?
+    ) {
+        PayloadExtractionTheme {
+            AppScaffold {
+                PayloadScreen(
+                    heartRateBpm = heartRateBpm,
+                    spo2Percent = spo2Percent,
+                    spo2Status = spo2Status
+                )
+            }
         }
     }
-}
 
-@Composable
-fun PayloadScreen(heartRateBpm: Double?, spo2Percent: Double?, spo2Status: Int?) {
-    val context = LocalContext.current
+    @Composable
+    fun PayloadScreen(
+        heartRateBpm: Double?,
+        spo2Percent: Double?,
+        spo2Status: Int?
+    ) {
+        val context = LocalContext.current
 
-    val batteryPercent = remember {
-        readBatteryPercentage(context)
+        val batteryPercent = remember {
+            readBatteryPercentage(context)
+        }
+
+        val isConnected = remember {
+            isNetworkConnected(context)
+        }
+
+        val listState = rememberTransformingLazyColumnState()
+        val transformationSpec = rememberTransformationSpec()
+
+        ScreenScaffold(scrollState = listState) { contentPadding ->
+            TransformingLazyColumn(
+                contentPadding = contentPadding,
+                state = listState
+            ) {
+                item {
+                    ListHeader(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .transformedHeight(
+                                this,
+                                transformationSpec
+                            ),
+                        transformation =
+                            SurfaceTransformation(transformationSpec)
+                    ) {
+                        Text("Alera Payload")
+
+                    }
+                }
+
+                item {
+                    Text(text = "Battery: $batteryPercent%")
+                }
+                item {
+                    Text(text = heartRateBpm?.let {
+                        "Heart Rate: ${it.toInt()}BPM"
+                    } ?: "Heart Rate : Waiting"
+                    )
+                }
+                item {
+                    Text(text = spo2Percent?.let {
+                        "Spo2: ${it.toInt()}%"
+                    } ?: "SpO₂ Status: ${spo2Status ?: "Waiting"}")
+                }
+                item {
+                    Text(
+                        text = if (isConnected) {
+                            "Connection: Online"
+                        } else {
+                            "Connection: Offline"
+                        }
+                    )
+                }
+
+            }
+
+        }
     }
 
-    val isConnected = remember {
-        isNetworkConnected(context)
-    }
+    fun readBatteryPercentage(context: Context): Int {
+        val batteryManager =
+            context.getSystemService(Context.BATTERY_SERVICE)
+                    as BatteryManager
 
-    val payload = remember(batteryPercent, isConnected, heartRateBpm, spo2Percent) {
-        SmartwatchPayload(
-            measuredAt = OffsetDateTime.now().toString(),
-            batteryPercent = batteryPercent,
-            heartRateBpm = heartRateBpm,
-            spo2Percent = spo2Percent,
-            isConnected = isConnected
+        return batteryManager.getIntProperty(
+            BatteryManager.BATTERY_PROPERTY_CAPACITY
         )
     }
 
-    val payloadJson = Json.encodeToString(payload)
+    fun readChargingStatus(context: Context): Boolean {
+        val batteryIntent =
+            context.registerReceiver(
+                null,
+                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            ) ?: return false
 
-    Log.d("AleraPayload",payloadJson)
-    val listState = rememberTransformingLazyColumnState()
-    val transformationSpec = rememberTransformationSpec()
+        val status =
+            batteryIntent.getIntExtra(
+                BatteryManager.EXTRA_STATUS,
+                -1
+            )
 
-    ScreenScaffold(scrollState = listState) { contentPadding ->
-                                                TransformingLazyColumn( contentPadding = contentPadding,
-                                                                        state = listState) {
-                                                    item{
-                                                        ListHeader(modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .transformedHeight(
-                                                                this,
-                                                                transformationSpec
-                                                            ),
-                                                            transformation =
-                                                                SurfaceTransformation(transformationSpec)
-                                                        ) {
-                                                            Text("Alera Payload")
-
-                                                        }
-                                                    }
-
-                                                    item{
-                                                        Text(text = "Battery: $batteryPercent%")
-                                                    }
-                                                    item {
-                                                        Text(text = heartRateBpm?.let{
-                                                            "Heart Rate: ${it.toInt()}BPM"
-                                                            } ?:"Heart Rate : Waiting"
-                                                        )
-                                                    }
-                                                    item {
-                                                        Text(text = spo2Percent?.let{
-                                                            "Spo2: ${it.toInt()}%"
-                                                        }?:"SpO₂ Status: ${spo2Status ?: "Waiting"}")
-                                                    }
-                                                   item {
-                                                       Text(
-                                                           text = if (isConnected) { "Connection: Online"
-                                                                } else { "Connection: Offline"
-                                                           }
-                                                       )
-                                                   }
-
-                                                }
-
+        return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
     }
-}
 
-fun readBatteryPercentage(context: Context): Int {
-    val batteryManager =
-        context.getSystemService(Context.BATTERY_SERVICE)
-                as BatteryManager
+    fun isNetworkConnected(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(ConnectivityManager::class.java)
 
-    return batteryManager.getIntProperty(
-        BatteryManager.BATTERY_PROPERTY_CAPACITY
-    )
-}
-
-fun isNetworkConnected(context: Context): Boolean {
-    val connectivityManager =
-        context.getSystemService(ConnectivityManager::class.java)
-
-    val activeNetwork = connectivityManager.activeNetwork
-        ?: return false
-
-    val capabilities =
-        connectivityManager.getNetworkCapabilities(activeNetwork)
+        val activeNetwork = connectivityManager.activeNetwork
             ?: return false
 
-    return capabilities.hasCapability(
-        NetworkCapabilities.NET_CAPABILITY_INTERNET
-    )
-}
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(activeNetwork)
+                ?: return false
+
+        return capabilities.hasCapability(
+            NetworkCapabilities.NET_CAPABILITY_INTERNET
+        )
+    }
 
 
-@WearPreviewDevices
-@Composable
-fun DefaultPreview() {
-    WearApp(
-        heartRateBpm = 78.0,
-        spo2Percent = 97.0,
-        spo2Status = 2
-    )
+    @WearPreviewDevices
+    @Composable
+    fun DefaultPreview() {
+        WearApp(
+            heartRateBpm = 78.0,
+            spo2Percent = 97.0,
+            spo2Status = 2,
+        )
+    }
 }
