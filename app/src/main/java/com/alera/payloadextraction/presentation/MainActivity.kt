@@ -11,20 +11,35 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.weight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
-import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ScreenScaffold
-import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.lazy.rememberTransformationSpec
-import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import com.alera.payloadextraction.presentation.theme.PayloadExtractionTheme
 import kotlinx.serialization.json.Json
@@ -487,56 +502,341 @@ class MainActivity : ComponentActivity() {
             isNetworkConnected(context)
         }
 
-        val listState = rememberTransformingLazyColumnState()
-        val transformationSpec = rememberTransformationSpec()
+        val listState =
+            rememberTransformingLazyColumnState()
 
-        ScreenScaffold(scrollState = listState) { contentPadding ->
-            TransformingLazyColumn(
-                contentPadding = contentPadding,
-                state = listState
+        val background = Color(0xFF08080A)
+        val cardColor = Color(0xFF15151A)
+        val softCardColor = Color(0xFF1C1920)
+        val primaryPink = Color(0xFFFF82BE)
+        val secondaryPurple = Color(0xFFB8A0FF)
+        val textPrimary = Color(0xFFF8F6FA)
+        val textSecondary = Color(0xFFAAA5AF)
+        val success = Color(0xFF82D8A0)
+        val danger = Color(0xFFFF8D9B)
+
+        ScreenScaffold(
+            scrollState = listState
+        ) { contentPadding ->
+            Box(
+                modifier = Modifier
+                    .background(background)
             ) {
-                item {
-                    ListHeader(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .transformedHeight(
-                                this,
-                                transformationSpec
-                            ),
-                        transformation =
-                            SurfaceTransformation(transformationSpec)
-                    ) {
-                        Text("Alera Payload")
+                TransformingLazyColumn(
+                    contentPadding = contentPadding,
+                    state = listState
+                ) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 18.dp,
+                                    vertical = 8.dp
+                                ),
+                            horizontalAlignment =
+                                Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "ALERA",
+                                color = primaryPink,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp
+                            )
 
+                            Spacer(
+                                modifier = Modifier.height(4.dp)
+                            )
+
+                            Text(
+                                text = "Health at a glance",
+                                color = textSecondary,
+                                fontSize = 11.sp
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(10.dp)
+                            )
+
+                            StatusPill(
+                                label =
+                                    if (isConnected) {
+                                        "ONLINE"
+                                    } else {
+                                        "OFFLINE"
+                                    },
+                                dotColor =
+                                    if (isConnected) {
+                                        success
+                                    } else {
+                                        danger
+                                    },
+                                textColor = textPrimary,
+                                cardColor = cardColor
+                            )
+                        }
+                    }
+
+                    item {
+                        MetricCard(
+                            eyebrow = "HEART RATE",
+                            value =
+                                heartRateBpm?.let {
+                                    it.toInt().toString()
+                                } ?: "--",
+                            unit = "BPM",
+                            accent = primaryPink,
+                            cardColor = cardColor,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary
+                        )
+                    }
+
+                    item {
+                        MetricCard(
+                            eyebrow = "BLOOD OXYGEN",
+                            value =
+                                spo2Percent?.let {
+                                    it.toInt().toString()
+                                } ?: "--",
+                            unit = "%",
+                            accent = secondaryPurple,
+                            cardColor = softCardColor,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            footer =
+                                if (spo2Percent == null) {
+                                    "Status: ${spo2Status ?: "Waiting"}"
+                                } else {
+                                    "Latest SpO₂ reading"
+                                }
+                        )
+                    }
+
+                    item {
+                        CompactStatusCard(
+                            label = "WATCH BATTERY",
+                            value = "$batteryPercent%",
+                            accent = primaryPink,
+                            cardColor = cardColor,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary
+                        )
+                    }
+
+                    item {
+                        CompactStatusCard(
+                            label = "NETWORK",
+                            value =
+                                if (isConnected) {
+                                    "Connected"
+                                } else {
+                                    "Offline"
+                                },
+                            accent =
+                                if (isConnected) {
+                                    success
+                                } else {
+                                    danger
+                                },
+                            cardColor = cardColor,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "Alera is monitoring your watch",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 22.dp,
+                                    vertical = 12.dp
+                                ),
+                            color = textSecondary,
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
+            }
+        }
+    }
 
-                item {
-                    Text(text = "Battery: $batteryPercent%")
-                }
-                item {
-                    Text(text = heartRateBpm?.let {
-                        "Heart Rate: ${it.toInt()}BPM"
-                    } ?: "Heart Rate : Waiting"
+    @Composable
+    private fun StatusPill(
+        label: String,
+        dotColor: Color,
+        textColor: Color,
+        cardColor: Color
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    color = cardColor,
+                    shape = RoundedCornerShape(50.dp)
+                )
+                .padding(
+                    horizontal = 12.dp,
+                    vertical = 7.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(
+                        color = dotColor,
+                        shape = CircleShape
                     )
-                }
-                item {
-                    Text(text = spo2Percent?.let {
-                        "Spo2: ${it.toInt()}%"
-                    } ?: "SpO₂ Status: ${spo2Status ?: "Waiting"}")
-                }
-                item {
-                    Text(
-                        text = if (isConnected) {
-                            "Connection: Online"
-                        } else {
-                            "Connection: Offline"
-                        }
-                    )
-                }
+            )
 
+            Text(
+                text = "  $label",
+                color = textColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.sp
+            )
+        }
+    }
+
+    @Composable
+    private fun MetricCard(
+        eyebrow: String,
+        value: String,
+        unit: String,
+        accent: Color,
+        cardColor: Color,
+        textPrimary: Color,
+        textSecondary: Color,
+        footer: String? = null
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 12.dp,
+                    vertical = 5.dp
+                )
+                .background(
+                    color = cardColor,
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = accent.copy(alpha = 0.28f),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(
+                    horizontal = 18.dp,
+                    vertical = 16.dp
+                )
+        ) {
+            Text(
+                text = eyebrow,
+                color = accent,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
+
+            Row(
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = value,
+                    color = textPrimary,
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 40.sp
+                )
+
+                Text(
+                    text = " $unit",
+                    color = textSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
             }
 
+            footer?.let {
+                Spacer(
+                    modifier = Modifier.height(5.dp)
+                )
+
+                Text(
+                    text = it,
+                    color = textSecondary,
+                    fontSize = 10.sp
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun CompactStatusCard(
+        label: String,
+        value: String,
+        accent: Color,
+        cardColor: Color,
+        textPrimary: Color,
+        textSecondary: Color
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 12.dp,
+                    vertical = 4.dp
+                )
+                .background(
+                    color = cardColor,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 13.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(
+                        color = accent,
+                        shape = CircleShape
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 10.dp)
+            ) {
+                Text(
+                    text = label,
+                    color = textSecondary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.7.sp
+                )
+
+                Text(
+                    text = value,
+                    color = textPrimary,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 
