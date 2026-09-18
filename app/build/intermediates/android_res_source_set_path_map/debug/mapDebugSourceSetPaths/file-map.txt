@@ -1,0 +1,7 @@
+com.alera.payloadextraction.app-pngs-0 D:\Coding\Projects\PayloadExtraction\app\build\generated\res\pngs\debug
+com.alera.payloadextraction.app-updated_navigation_xml-1 D:\Coding\Projects\PayloadExtraction\app\build\generated\updated_navigation_xml\debug
+com.alera.payloadextraction.app-packageDebugResources-2 D:\Coding\Projects\PayloadExtraction\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.alera.payloadextraction.app-packageDebugResources-3 D:\Coding\Projects\PayloadExtraction\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.alera.payloadextraction.app-debug-4 D:\Coding\Projects\PayloadExtraction\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.alera.payloadextraction.app-debug-5 D:\Coding\Projects\PayloadExtraction\app\src\debug\res
+com.alera.payloadextraction.app-main-6 D:\Coding\Projects\PayloadExtraction\app\src\main\res

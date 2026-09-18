@@ -1,0 +1,14 @@
+R_DEF: Internal format may change without notice
+local
+color alera_logo_background
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable splash_icon
+mipmap alera_logo
+mipmap alera_logo_foreground
+mipmap alera_logo_round
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+string hello_world
+style MainActivityTheme.Starting

@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.alera.payloadextraction.app-mergeDebugResources-44:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\PERSONAL\\.gradle\\caches\\9.3.1\\transforms\\c1aecd5c7ef03fe25f319163b8ea8baf\\workspace\\transformed\\core-splashscreen-1.2.0\\res\\values-v30\\values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "7",
+                        "endColumns": "12",
+                        "endOffsets": "433"
+                    }
+                }
+            ]
+        }
+    ]
+}
