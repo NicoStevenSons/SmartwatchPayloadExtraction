@@ -25,7 +25,7 @@ class SpO2SensorManager(
     private var isMeasuring = false
     private var schedulerRunning = false
 
-    private var intervalMinutes: Long = 5
+    private var intervalMinutes: Long = 3
 
     private val handler =
         Handler(Looper.getMainLooper())
