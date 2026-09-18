@@ -550,23 +550,6 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    fun readChargingStatus(context: Context): Boolean {
-        val batteryIntent =
-            context.registerReceiver(
-                null,
-                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-            ) ?: return false
-
-        val status =
-            batteryIntent.getIntExtra(
-                BatteryManager.EXTRA_STATUS,
-                -1
-            )
-
-        return status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                status == BatteryManager.BATTERY_STATUS_FULL
-    }
-
     fun isNetworkConnected(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(ConnectivityManager::class.java)

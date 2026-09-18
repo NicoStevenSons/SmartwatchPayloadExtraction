@@ -1,6 +1,8 @@
 package com.alera.payloadextraction.presentation.status
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
 import com.alera.payloadextraction.presentation.payload.DeviceStatusPayload
@@ -25,6 +27,9 @@ class DeviceStatusReader(
                 BatteryManager.BATTERY_PROPERTY_CAPACITY
             )
 
+        val isCharging =
+            readChargingStatus()
+
         val connectedNodes =
             nodeClient.connectedNodes.await()
 
@@ -33,15 +38,29 @@ class DeviceStatusReader(
 
         return DeviceStatusPayload(
             batteryPercent = batteryPercent,
-            deviceName =
-                "${Build.MANUFACTURER} ${Build.MODEL}",
+            isCharging = isCharging,
+            deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
             deviceModel = Build.MODEL,
-            connectedToPhone =
-                connectedNode != null,
-            connectedPhoneName =
-                connectedNode?.displayName,
-            measuredAt =
-                OffsetDateTime.now().toString()
+            connectedToPhone = connectedNode != null,
+            connectedPhoneName = connectedNode?.displayName,
+            measuredAt = OffsetDateTime.now().toString()
         )
+    }
+
+    private fun readChargingStatus(): Boolean {
+        val batteryIntent =
+            context.registerReceiver(
+                null,
+                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            ) ?: return false
+
+        val status =
+            batteryIntent.getIntExtra(
+                BatteryManager.EXTRA_STATUS,
+                -1
+            )
+
+        return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
     }
 }

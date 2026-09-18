@@ -14,43 +14,28 @@ class WearPayloadSender(
     private val messageClient =
         Wearable.getMessageClient(context)
 
-    suspend fun sendPayload(
+    suspend fun sendPayloadToNode(
+        nodeId: String,
         path: String,
         json: String
     ): Boolean {
         return try {
-            val nodes =
-                nodeClient.connectedNodes.await()
-
-            if (nodes.isEmpty()) {
-                Log.w(
-                    "AleraTransfer",
-                    "No connected phone found"
-                )
-
-                return false
-            }
-
-            nodes.forEach { node ->
-                messageClient.sendMessage(
-                    node.id,
-                    path,
-                    json.toByteArray(
-                        Charsets.UTF_8
-                    )
-                ).await()
-            }
+            messageClient.sendMessage(
+                nodeId,
+                path,
+                json.toByteArray(Charsets.UTF_8)
+            ).await()
 
             Log.d(
                 "AleraTransfer",
-                "Sent payload to phone: $path"
+                "Sent payload to node $nodeId: $path"
             )
 
             true
         } catch (exception: Exception) {
             Log.e(
                 "AleraTransfer",
-                "Payload send failed",
+                "Payload send to node failed",
                 exception
             )
 

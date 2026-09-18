@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeviceStatusPayload(
+    @SerialName("is_charging")
+    val isCharging: Boolean,
+
     @SerialName("event_type")
     val eventType: String = "device_status",
 
@@ -25,4 +28,6 @@ data class DeviceStatusPayload(
 
     @SerialName("measured_at")
     val measuredAt: String
+
+
 )

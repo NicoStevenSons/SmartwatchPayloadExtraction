@@ -16,7 +16,15 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fec794c5-4488-4e98-b989-a449c6dd33b5" name="Changes" comment="Phone to Smartwatch Communication" />
+    <list default="true" id="fec794c5-4488-4e98-b989-a449c6dd33b5" name="Changes" comment="Phone to Smartwatch Communication">
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/service/WatchStatusRequestService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/payload/DeviceStatusPayload.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/payload/DeviceStatusPayload.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/status/DeviceStatusReader.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/status/DeviceStatusReader.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/transfer/WearPayloadSender.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/transfer/WearPayloadSender.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -25,7 +33,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[PhysicalDevice::serial=VKUC4TIVU8SGKRFU]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[LocalEmulator::path=D:\Coding\Android\avd\Wear_OS_Small_Round_2_2.avd]" />
   <component name="ExportToHTMLSettings">
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/../PayloadExtraction\exportToHTML" />
   </component>
@@ -255,14 +263,6 @@
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-function">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/MainActivity.kt</url>
-          <line>562</line>
-          <properties class="com.alera.payloadextraction.presentation.MainActivity">
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-function">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/alera/payloadextraction/presentation/MainActivity.kt</url>
