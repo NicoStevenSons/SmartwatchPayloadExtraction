@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
     private val spo2StatusState = mutableStateOf<Int?>(null)
     private lateinit var spo2SensorManager: SpO2SensorManager
     private val spo2MeasuredAtState = mutableStateOf<String?>(null)
+    private val isWornState = mutableStateOf<Boolean?>(null)
     private lateinit var deviceStatusReader:  DeviceStatusReader
     private val bodySensorPermissionLauncher =
         registerForActivityResult(
@@ -250,8 +251,8 @@ class MainActivity : ComponentActivity() {
             WearApp(
                 heartRateBpm = heartRateState.value,
                 spo2Percent = spo2State.value,
-                spo2Status = spo2StatusState.value
-
+                spo2Status = spo2StatusState.value,
+                isWorn = isWornState.value
             )
         }
     }
@@ -268,6 +269,10 @@ class MainActivity : ComponentActivity() {
 
                 val statusJson =
                     json.encodeToString(status)
+
+                runOnUiThread {
+                    isWornState.value = status.isWorn
+                }
 
                 wearPayloadSender.sendPayload(
                     "/alera/device-status",
@@ -472,14 +477,16 @@ class MainActivity : ComponentActivity() {
     fun WearApp(
         heartRateBpm: Double?,
         spo2Percent: Double?,
-        spo2Status: Int?
+        spo2Status: Int?,
+        isWorn: Boolean?
     ) {
         PayloadExtractionTheme {
             AppScaffold {
                 PayloadScreen(
                     heartRateBpm = heartRateBpm,
                     spo2Percent = spo2Percent,
-                    spo2Status = spo2Status
+                    spo2Status = spo2Status,
+                    isWorn = isWorn
                 )
             }
         }
@@ -489,7 +496,8 @@ class MainActivity : ComponentActivity() {
     fun PayloadScreen(
         heartRateBpm: Double?,
         spo2Percent: Double?,
-        spo2Status: Int?
+        spo2Status: Int?,
+        isWorn: Boolean?
     ) {
         val context = LocalContext.current
 
@@ -618,6 +626,27 @@ class MainActivity : ComponentActivity() {
                             label = "WATCH BATTERY",
                             value = "$batteryPercent%",
                             accent = primaryPink,
+                            cardColor = cardColor,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary
+                        )
+                    }
+
+                    item {
+                        CompactStatusCard(
+                            label = "WEAR STATUS",
+                            value =
+                                when (isWorn) {
+                                    true -> "On wrist"
+                                    false -> "Not worn"
+                                    null -> "Checking..."
+                                },
+                            accent =
+                                when (isWorn) {
+                                    true -> success
+                                    false -> danger
+                                    null -> textSecondary
+                                },
                             cardColor = cardColor,
                             textPrimary = textPrimary,
                             textSecondary = textSecondary
@@ -873,6 +902,7 @@ class MainActivity : ComponentActivity() {
             heartRateBpm = 78.0,
             spo2Percent = 97.0,
             spo2Status = 2,
+            isWorn = true,
         )
     }
 }
