@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-46:12
-INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-46:12
-INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-46:12
-INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-46:12
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-63:12
+INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-63:12
+INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-63:12
+INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:2:1-63:12
 MERGED from [samsung-health-sensor-api-1.4.1.aar] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\fe7cebf34f868961f359f313d42e386a\workspace\transformed\samsung-health-sensor-api-1.4.1\AndroidManifest.xml:2:1-14:12
 MERGED from [androidx.wear.compose:compose-material-core:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\4b8cab2d2f3072518b7f3d61fcde2b92\workspace\transformed\compose-material-core-1.5.6\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.wear.compose:compose-ui-tooling:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\4cbf10add32ed3e62cbb2f34c3023091\workspace\transformed\compose-ui-tooling-1.5.6\AndroidManifest.xml:2:1-7:12
@@ -106,8 +106,8 @@ ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml
 	android:name
 		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:9:22-76
 application
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:12:5-44:19
-INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:12:5-44:19
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:12:5-61:19
+INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:12:5-61:19
 MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:22:5-26:19
 MERGED from [com.google.android.gms:play-services-wearable:20.0.1] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\744dec2d19e37e5c13e3c7f03267ee06\workspace\transformed\play-services-wearable-20.0.1\AndroidManifest.xml:22:5-20
@@ -148,46 +148,66 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\PERSONAL\.gradle\c
 		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:13:9-35
 	android:theme
 		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:17:9-59
-uses-library#com.google.android.wearable
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:18:9-20:39
-	android:required
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:20:13-36
-	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:19:13-55
-uses-library#wear-sdk
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:21:9-23:40
-MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:23:9-25:40
-MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:23:9-25:40
-	android:required
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:23:13-37
-	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:22:13-36
-meta-data#com.google.android.wearable.standalone
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:29:9-31:36
-	android:value
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:31:13-33
-	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:30:13-66
-activity#com.alera.payloadextraction.presentation.MainActivity
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:33:9-43:20
+service#com.alera.payloadextraction.presentation.service.WatchStatusRequestService
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:19:9-33:19
 	android:exported
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:35:13-36
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:21:13-36
+	android:name
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:20:13-75
+intent-filter#action:name:com.google.android.gms.wearable.MESSAGE_RECEIVED+data:host:*+data:path:/alera/device-status/request+data:scheme:wear
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:23:13-31:29
+action#com.google.android.gms.wearable.MESSAGE_RECEIVED
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:24:17-25:87
+	android:name
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:25:21-84
+data
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:27:17-30:67
+	android:path
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:30:21-64
+	android:host
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:29:21-37
+	android:scheme
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:28:21-42
+uses-library#com.google.android.wearable
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:35:9-37:39
+	android:required
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:37:13-36
+	android:name
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:36:13-55
+uses-library#wear-sdk
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:38:9-40:40
+MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:23:9-25:40
+MERGED from [androidx.wear.compose:compose-foundation:1.5.6] C:\Users\PERSONAL\.gradle\caches\9.3.1\transforms\7b96e3244b7351e3eb272a130dd8c4a6\workspace\transformed\compose-foundation-1.5.6\AndroidManifest.xml:23:9-25:40
+	android:required
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:40:13-37
+	android:name
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:39:13-36
+meta-data#com.google.android.wearable.standalone
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:46:9-48:36
+	android:value
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:48:13-33
+	android:name
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:47:13-66
+activity#com.alera.payloadextraction.presentation.MainActivity
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:50:9-60:20
+	android:exported
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:52:13-36
 	android:theme
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:37:13-62
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:54:13-62
 	android:taskAffinity
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:36:13-36
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:53:13-36
 	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:34:13-54
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:51:13-54
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:38:13-42:29
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:55:13-59:29
 action#android.intent.action.MAIN
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:39:17-69
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:56:17-69
 	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:39:25-66
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:56:25-66
 category#android.intent.category.LAUNCHER
-ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:41:17-77
+ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:58:17-77
 	android:name
-		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:41:27-74
+		ADDED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml:58:27-74
 uses-sdk
 INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from D:\Coding\Projects\PayloadExtraction\app\src\main\AndroidManifest.xml

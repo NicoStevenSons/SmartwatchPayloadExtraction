@@ -40,6 +40,19 @@
         android:supportsRtl="true"
         android:testOnly="true"
         android:theme="@android:style/Theme.DeviceDefault" >
+        <service
+            android:name="com.alera.payloadextraction.presentation.service.WatchStatusRequestService"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+
+                <data
+                    android:host="*"
+                    android:path="/alera/device-status/request"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />

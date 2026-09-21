@@ -27,7 +27,9 @@ data class DeviceStatusPayload(
     val connectedPhoneName: String?,
 
     @SerialName("measured_at")
-    val measuredAt: String
+    val measuredAt: String,
 
+    @SerialName("is_worn")
+    val isWorn: Boolean?
 
 )
